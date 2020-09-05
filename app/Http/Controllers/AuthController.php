@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use JWTAuth;
-
+use App\User;
+use Illuminate\Support\Facades\Hash;
+use GuzzleHttp\Client;
 class AuthController extends Controller
 {
     /**
@@ -22,7 +24,7 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login()
+    public function login_with_jwt()
     {  
         $credentials = request(['email', 'password']);
 
@@ -31,6 +33,36 @@ class AuthController extends Controller
         }
 
         return $this->respondWithToken($token);
+    }
+
+    // using oAuth
+    public function login() 
+    {
+        $credentials = request(['email', 'password']);
+        $user = User::where('email', $credentials['email'])->first();
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+       
+       // not working: Since the PHP built-in server is single threaded, requesting another url on your server will halt first request and it gets timed out.
+        // $http =  new Client([
+        //     'base_uri' => 'http://127.0.0.1:8001/',
+        // ]);
+        // $response = $http->post(url('oauth/token'), [
+        //     'form_params' => [
+        //         'grant_type' => 'password',
+        //         'client_id' => '2',
+        //         'client_secret' => 'TJjFShveL3MAsesU0joxhBDX0fT2qnLVg9ptt21X',
+        //         'username' =>  $credentials['email'],
+        //         'password' => $credentials['password']               
+        //     ],
+        // ]);
+        return response()->json([
+            'access_token' => $user->createToken('Auth Token')->accessToken,
+            'token_type' => 'bearer'           
+        ]);
+        //                 
+        //return json_decode((string) $response->getBody(), true);
     }
 
     /**

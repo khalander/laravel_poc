@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Socialite;
+use \Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OTPMail;
+use Illuminate\Support\Facades\Cache;
+
 class LoginController extends Controller
 {
     /*
@@ -62,5 +67,44 @@ class LoginController extends Controller
             4) For multiple socialite option, make param route and replace everywhere option is hard coded
         */
         return $user->name;
+    }
+
+    /**
+     * Attempt to log the user into the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return bool
+     */
+    protected function attemptLogin(Request $request)
+    {
+        $result = $this->guard()->attempt(
+            $this->credentials($request), $request->filled('remember')
+        );
+      
+        if ($result) {
+            auth()->user()->cacheTheOtp();
+            auth()->user()->sentOtp(request('via'));
+        }
+        return $result;
+    }
+
+    /**
+     * Log the user out of the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function logout(Request $request)
+    {
+
+        auth()->user()->update([
+            'isVerified' => 0
+        ]);
+
+        $this->guard()->logout();
+
+        $request->session()->invalidate();
+
+        return redirect('/');
     }
 }

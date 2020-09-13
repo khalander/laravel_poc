@@ -17,7 +17,10 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
-
+Route::group(['middleware' => 'two.fa'], function() {
+    Route::get('/home', 'HomeController@index')->name('home');
+} );
 Route::get('login/google', 'Auth\LoginController@redirectToProvider');
 Route::get('login/google/callback', 'Auth\LoginController@handleProviderCallback');
+Route::post('verify-otp', 'VerifyController@verifyOtp');
+Route::get('verify-otp', 'VerifyController@showOtpForm');

@@ -6,6 +6,9 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OTPMail;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -17,7 +20,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'isVerified'
     ];
 
     /**
@@ -49,4 +52,28 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
+    public function getOtpKey()
+    {
+        return "otp_for_{$this->id}";
+    }
+
+    public function getOtp() 
+    {
+        return Cache::get($this->getOtpKey());
+    }
+
+    public function cacheTheOtp()
+    {
+        return Cache::set([$this->getOtpKey() => rand(1000000, 9999999)], now()->addMinutes(30));
+    }
+
+    public function sentOtp($via)
+    {
+        if ($via == 'email') {
+            Mail::to($this->email)->send(new OTPMail($this->getOtp()));
+        } else {
+
+        }
+        
+    }
 }

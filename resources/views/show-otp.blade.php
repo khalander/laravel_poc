@@ -66,33 +66,21 @@
     </head>
     <body>
         <div class="flex-center position-ref full-height">
-            @if (Route::has('login'))
-                <div class="top-right links">
-                    @auth
-                        <a href="{{ url('/home') }}">Home</a>
-                    @else
-                        <a href="{{ route('login') }}">Login</a>
-                        <a href="{{ route('register') }}">Register</a>
-                    @endauth
-                </div>
-            @endif
+           <div>
 
-            <div class="content">
-                <div class="title m-b-md">
-                    Laravel => 
-                    @if(isset($otp))
-                    {{$otp}}
-                    @endif
-                </div>
-
-                <div class="links">
-                    <a href="https://laravel.com/docs">Documentation</a>
-                    <a href="https://laracasts.com">Laracasts</a>
-                    <a href="https://laravel-news.com">News</a>
-                    <a href="https://forge.laravel.com">Forge</a>
-                    <a href="https://github.com/laravel/laravel">GitHub</a>
-                </div>
-            </div>
+            @foreach($errors->all() as $error)
+            {
+                {{$error}}
+            }
+            @endforeach
+               <form action="/verify-otp" method="post"> 
+               {{ csrf_field() }}
+                Enter Otp
+                <input type="text"  name="otp" />
+                <button type="submit">Submit</button>
+               </form>
+              
+           </div>
         </div>
     </body>
 </html>
